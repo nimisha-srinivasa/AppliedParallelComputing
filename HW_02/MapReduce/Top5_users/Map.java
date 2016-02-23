@@ -1,13 +1,14 @@
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.IOException;
+import java.util.*;
 
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
 
-public class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
+public class Map extends Mapper<Object, Text, Text, IntWritable> {
 	private Map<Text, IntWritable> countMap = new TreeMap<Text, IntWritable>();
 
 	 private Pattern p = Pattern.compile("(\\d+.\\d+.\\d+.\\d+).*(?:GET)\\s([^\\s]+)");
@@ -23,7 +24,7 @@ public class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
 			 	if(countMap.containsKey(url)){
 			 		countMap.put(url, new IntWritable(countMap.get(url).get()+1));
 			 	}else{
-			 		countMap.put(url,new IntWritable(1));
+			 		countMap.put(new Text(url),new IntWritable(1));
 			 	}
 				
 			 }
@@ -40,7 +41,7 @@ public class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
             if (counter ++ == 20) {
                 break;
             }
-            context.write(key, sortedMap.get(key));
+            context.write(new Text(key), new IntWritable(sortedMap.get(key).get()));
         }
     }
 

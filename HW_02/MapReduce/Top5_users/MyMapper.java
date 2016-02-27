@@ -8,7 +8,17 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
 
-public class Map extends Mapper<Object, Text, Text, IntWritable> {
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+public class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
 	private Map<Text, IntWritable> countMap = new TreeMap<Text, IntWritable>();
 
 	 private Pattern p = Pattern.compile("(\\d+.\\d+.\\d+.\\d+).*(?:GET)\\s([^\\s]+)");
@@ -33,12 +43,10 @@ public class Map extends Mapper<Object, Text, Text, IntWritable> {
 
 	 @Override
     protected void cleanup(Context context) throws IOException, InterruptedException {
-
         Map<Text, IntWritable> sortedMap = sortByValues(countMap);
-
         int counter = 0;
         for (Text key: sortedMap.keySet()) {
-            if (counter ++ == 20) {
+            if (counter ++ == 5) {
                 break;
             }
             context.write(new Text(key), new IntWritable(sortedMap.get(key).get()));
@@ -56,15 +64,10 @@ public class Map extends Mapper<Object, Text, Text, IntWritable> {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-
-        
         Map<K, V> sortedMap = new LinkedHashMap<K, V>();
-
         for (Map.Entry<K, V> entry : entries) {
             sortedMap.put(entry.getKey(), entry.getValue());
         }
-
         return sortedMap;
     }
-
 }

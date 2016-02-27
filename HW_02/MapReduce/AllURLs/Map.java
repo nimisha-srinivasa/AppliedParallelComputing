@@ -10,7 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 public class Map extends Mapper<Object, Text, Text, IntWritable> {
 	 private final static IntWritable one = new IntWritable(1);
 	 private Text url = new Text();
-	 //to extract the user IP and their count
+	 /*to extract the user IP and their count*/
 	 private Pattern p = Pattern.compile("(?:GET)\\s([^\\s]+)");
 	 @Override
 	 public void map(Object key, Text value, Context context)

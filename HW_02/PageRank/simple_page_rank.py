@@ -20,21 +20,11 @@ class SimplePageRank(object):
     sorted by pagerank score in descending order.
     """
     def compute_pagerank(self, num_iters):
-        print "control came here"
         nodes = self.initialize_nodes(self.input_rdd)
         output = self.format_output(nodes)
-        for (node, weight) in output.take(100):
-            print node, weight
         num_nodes = nodes.count()
-        node_list = nodes.keys().collect()
-        print "in compute_pagerank():",node_list
         for i in range(0, num_iters):
-            #nodes = self.update_weights(nodes, num_nodes, node_list)
             nodes = self.update_weights(nodes, num_nodes)
-            output = self.format_output(nodes)
-            print "interation:",i
-            for (node, weight) in output.take(100):
-                print node, weight
         return self.format_output(nodes)
 
     """
@@ -80,18 +70,18 @@ class SimplePageRank(object):
         def initialize_weights((source, targets)):
             return (source, (1.0, targets))
 
-        print "in initialize_weights:"
         nodes = input_rdd\
                 .flatMap(emit_edges)\
                 .reduceByKey(reduce_edges)\
                 .map(initialize_weights)
 
-        
         node_list=nodes.keys().collect()
+        # distribute the node_list to all RDD's
         def modify_datastructure((key, values)):
             return (key, [values[0], values[1], node_list])
 
         nodes = nodes.map(modify_datastructure)
+
         return nodes
 
     """
@@ -101,10 +91,6 @@ class SimplePageRank(object):
     """
     @staticmethod
     def update_weights(nodes, num_nodes):
-        '''
-        def update_weights(nodes, num_nodes, node_list):
-            print "within update_weights:",node_list
-        '''
         """
         Mapper phase.
         Distributes pagerank scores for a given node to each of its targets,
@@ -118,18 +104,26 @@ class SimplePageRank(object):
         get both types of information.
         You are allowed to change the signature if you desire to.
         """
-        # data structure used between mapper and reducer: (node, ([(neighbor_node,weight)],frozenset(targets),initial_wt))
+        '''
+         data structure used between mapper and reducer: 
+         (node, [node_weight, neighbor_list, all_node_list])
+        '''
         def distribute_weights((node, values)):
             result = []
+
             node_set=frozenset([node])
-            result.append((node,[0.05*values[0],frozenset(values[1]), values[2]]))
+
+            #first contribution from the node itself (Stay on the page) i.e., 0.05 * node_weight
+            result.append((node,[0.05 * values[0], frozenset(values[1]), values[2]]))
+
+            #second contribution from incoming nodes (Randomly follow a link) i.e., (0.85 * node_weight)/ #_neighbors
             if(len(values[1])!= 0):
                 contrib = (0.85 * values[0]) / len(values[1])
                 for neighbor in values[1]:
                     result.append((neighbor, [contrib, frozenset(), values[2]])) 
-                    
+
+            #second contribution: distribute the rank to all other nodes randomly if it has no neighbors        
             else:
-                print "node with no neighbors",node
                 contrib = (0.85 * values[0])/(len(values[2])-1)
                 for n in values[2]:
                     if(n!=node):
@@ -137,7 +131,6 @@ class SimplePageRank(object):
             return result
 
         def reduce_edges(value1, value2):
-            print "in reduce_by_key:"
             new_value=[]
             new_value.append(value1[0] + value2[0])
             new_value.append(value1[1]    | value2[1])
@@ -154,16 +147,10 @@ class SimplePageRank(object):
         The output of this phase should be in the same format as the input to the mapper.
         You are allowed to change the signature if you desire to.
         """
-        #def collect_weights((node, (neighbor_weights, targets, ,initial_wt))):
         def collect_weights((node, values)):
-            print "in reducer:"
-            print (node, values)
             
-            #adding the random factor
+            #third contribution from Randomly going to any page in the graph i.e., 0.1
             new_wt=values[0]+0.1
-            print "reducer result:"
-            print (node, [new_wt, values[1], values[2]])
-            #if the node has no neighbors, distribute 0.85 to the others
 
             return (node, [new_wt, values[1], values[2]])
         

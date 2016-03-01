@@ -10,3 +10,8 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+HW_02/MapReduce/Todo.txt
+HW_02/MapReduce/output.txt
+HW_02/word_count/Makefile
+HW_02/word_count/submit_job.sh
+HW_02/PageRank/todo

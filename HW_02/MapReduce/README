@@ -1,0 +1,60 @@
+Apache Log Anlysis using Hadoop MapReduce
+
+Team members:
+Christopher Gorman
+Nimisha Srinivasa
+
+-----------------------------------------------------------------------------------------------------------
+
+All URLs:
+
+steps to run the code:
+
+$cd allURLs/
+$make
+$make submit
+
+answer will be stored in:
+log-out/output/part-*
+
+-----------------------------------------------------------------------------------------------------------
+
+All Users:
+
+steps to run the code:
+
+$cd allUsers/
+$make
+$make submit
+
+answer will be stored in:
+log-out/output/part-*
+
+
+-----------------------------------------------------------------------------------------------------------
+
+Top 5 most frequent URLs:
+
+steps to run the code:
+
+$cd top5_URLs/
+$make
+$make submit
+
+answer will be stored in:
+log-out/output/part-*
+
+-----------------------------------------------------------------------------------------------------------
+
+Top 5 most active Users:
+
+steps to run the code:
+
+$cd top5_Users/
+$make
+$make submit
+
+answer will be stored in:
+log-out/output/part-*
+
+-----------------------------------------------------------------------------------------------------------

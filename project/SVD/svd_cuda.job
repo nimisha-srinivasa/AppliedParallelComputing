@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -p gpu-shared
+#SBATCH --gres=gpu:1
+
+#SBATCH --job-name="svd_cuda"
+#SBATCH --output="svd_cuda%j.%N.out"
+#SBATCH -t 00:02:00
+
+#cd ~/Working_directory
+
+#./add_vec_gpu_thd-blk.x
+./svd.x

@@ -6,6 +6,7 @@
 #include <string.h>
 #define ROWS 31568
 #define COLS 51
+#define FILENAME "data.txt"
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 #include <cuda_runtime.h>
@@ -33,7 +34,7 @@ void print_matrix(int m, int n, float *A, int lda, const char *name) {
 
 void readMatrixFromFile(float *p, int lda){
     FILE *myFile;
-    char *filename="data.txt";
+    char *filename=FILENAME;
     myFile = fopen(filename, "r");
     if (myFile == NULL)
     {
@@ -74,6 +75,11 @@ int main(int argc, char *argv[])
     cudaError_t cudaStat3 = cudaSuccess;
     cudaError_t cudaStat4 = cudaSuccess; 
 
+    /*used for timing purposes*/
+    cudaEvent_t start, stop;
+    float time;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
     
     int lwork = 0;
     int info_gpu = 0;
@@ -155,9 +161,13 @@ int main(int argc, char *argv[])
     int ldu = rows;
     int ldvt = cols;
     
-    printf("with  allocating memory for rwork!\n");
+    /*printf("with  allocating memory for rwork!\n");*/
+    cudaEventRecord(start, 0);
+
     cusolver_status = cusolverDnSgesvd (cudenseH, jobu, jobvt, rows, cols, d_A, lda, d_S, d_U, ldu, d_VT, ldvt, d_work, lwork, rwork, devInfo);
     cudaStat1 = cudaDeviceSynchronize();
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
     assert(cudaSuccess == cudaStat1);
     printf("cusolverDnSgesvd status :\t");
     switch(cusolver_status)
@@ -212,7 +222,8 @@ int main(int argc, char *argv[])
     print_matrix(cols, cols, h_VT, cols, "VT");
     printf("\n\n\n");
 
-     printf("A\n");
+     
+    printf("A\n");
     print_matrix(rows, rows, h_A, rows, "A");
     printf("\n\n\n");
     */
@@ -227,6 +238,10 @@ int main(int argc, char *argv[])
     if(h_S) free(h_S);
     if(h_U) free(h_U);
     if(h_VT) free(h_VT);
+
+    /* print the time */
+    cudaEventElapsedTime(&time, start, stop);
+    printf ("Time for the kernel: %f ms\n", time);
 
     if (cudenseH) cusolverDnDestroy(cudenseH);
 

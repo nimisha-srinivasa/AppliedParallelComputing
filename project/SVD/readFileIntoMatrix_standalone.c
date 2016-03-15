@@ -72,7 +72,7 @@ int main()
     }
     int c=getNumberOfColumns(myFile2);
     fclose(myFile2);
-
+    printf("r=%d and c=%d\n",r,c);
     char *line=NULL;
     char *word=NULL;
     int attr;

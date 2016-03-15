@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#define ROWS 75
+#define ROWS 31568
 #define COLS 51
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 

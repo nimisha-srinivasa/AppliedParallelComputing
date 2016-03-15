@@ -1,0 +1,5 @@
+/flower_store/category.screen?category_id=FLOWERS       232288
+/flower_store/category.screen?category_id=GIFTS 142160
+/flower_store/category.screen?category_id=PLANTS        119056
+/flower_store/category.screen?category_id=BALLOONS      86512
+/flower_store/category.screen?category_id=CANDY 84016

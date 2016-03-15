@@ -7,7 +7,7 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.conf.Configuration;
 
-public class Map extends Mapper<Object, Text, Text, IntWritable> {
+public class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
 	 private final static IntWritable one = new IntWritable(1);
 	 private Text url = new Text();
 	 /*to extract the user IP and their count*/

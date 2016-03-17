@@ -8,6 +8,7 @@
 #define COLS 51
 #define FILENAME "data.txt"
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define N_ITER 10
 
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
@@ -76,8 +77,9 @@ int main(int argc, char *argv[])
     cudaError_t cudaStat4 = cudaSuccess; 
 
     /*used for timing purposes*/
-    cudaEvent_t start, stop;
-    float time;
+    cudaEvent_t start_SVD, stop_SVD;
+    float time_QR;
+    float time_SVD;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     
@@ -106,11 +108,11 @@ int main(int argc, char *argv[])
     /*fill(h_A, mat_A_size); */
     readMatrixFromFile(h_A, rows);
 
-    
+    /*
     printf("A\n");
     print_matrix(rows, cols, h_A, rows, "A");
     printf("\n\n\n");
-    
+    */
 
 
     // Create data structures for device
@@ -164,8 +166,16 @@ int main(int argc, char *argv[])
     /*printf("with  allocating memory for rwork!\n");*/
     cudaEventRecord(start, 0);
 
-    cusolver_status = cusolverDnSgesvd (cudenseH, jobu, jobvt, rows, cols, d_A, lda, d_S, d_U, ldu, d_VT, ldvt, d_work, lwork, rwork, devInfo);
-    cudaStat1 = cudaDeviceSynchronize();
+
+    int n_iterations = N_ITER;
+    for(int i = 0; i < n_iterations; i++) {
+        cusolver_status = cusolverDnSgesvd (cudenseH, jobu, jobvt, rows, cols, d_A, lda, d_S, d_U, ldu, d_VT, ldvt, d_work, lwork, rwork, devInfo);
+        cudaStat1 = cudaDeviceSynchronize();
+    }
+
+
+
+
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
     assert(cudaSuccess == cudaStat1);
@@ -242,6 +252,13 @@ int main(int argc, char *argv[])
     /* print the time */
     cudaEventElapsedTime(&time, start, stop);
     printf ("Time for the kernel: %f ms\n", time);
+    printf ("\n\n\n");
+
+    /* total resources and computing */
+    float Mflop_rate;
+    Mflop_rate = 1e-6 * 4 * rows * rows * cols * n_iterations / time;
+    printf ("n_iterations = %d\n",n_iterations);
+    printf ("Mflop/s: %f\n", Mflop_rate);
 
     if (cudenseH) cusolverDnDestroy(cudenseH);
 

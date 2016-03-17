@@ -1,0 +1,12 @@
+GPU:
+
+1 node: 	78851.781250 ms
+
+
+
+
+
+MKL:
+1 node, 10 iterations:  2525.24 MFlops/s
+2 node, 10 iterations: 	2521.24 MFlops/s
+4 node, 10 iterations:  2524.93 MFlops/s

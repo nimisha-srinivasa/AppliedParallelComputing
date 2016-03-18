@@ -1,0 +1,28 @@
+CUDA_CC      = nvcc
+CFLAGS  =
+CUDA_LDFLAGS  = -lcublas -lcusolver
+
+
+#EXEC = hello_cuda.x dotprod.x add_vec_gpu_thd-blk.x
+#EXEC = vec_add_cuda.x svd_cuda.x
+EXEC = svd1.x svd2.x
+
+all:  $(EXEC)
+
+svd1.x: qr_1_svd_n.cu
+        $(CUDA_CC) -o $@ $^ $(CUDA_LDFLAGS)
+
+
+svd2.x: n_qr_svd.cu
+        $(CUDA_CC) -o $@ $^ $(CUDA_LDFLAGS)
+
+submit_1:
+        sbatch -v submit_1.job
+
+submit_2:
+        sbatch -v submit_2.job
+
+
+clean:
+        rm  $(EXEC)
+

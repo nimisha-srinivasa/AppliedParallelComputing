@@ -21,7 +21,7 @@ all:  $(EXEC)
 svd.x: gpu_svd.cu
 	$(CUDA_CC) -o $@ $^ $(CUDA_LDFLAGS)
 
-mkl_svd: mkl_svd.o
+mkl_svd: mkl_qr_svd.o
 	$(MKL_CC) -o $@ $^ $(MKL_LDFLAGS)
 
 

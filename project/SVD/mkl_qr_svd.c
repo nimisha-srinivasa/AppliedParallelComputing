@@ -10,6 +10,7 @@
 #define LDA M
 #define LDU M
 #define LDVT N
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /* DGESVD prototype 
 extern void dgesvd( char* jobu, char* jobvt, int* m, int* n, double* a,
@@ -56,6 +57,17 @@ void readMatrixFromFile(double *p, int lda){
     }  
 }
 
+void computeRfromA(double *A, double *R, int lda, int ldr){
+    for(int i=0; i< ldr; i++){
+        for(int j=0; j< ldr; j++){
+            if( i <= j)
+                R[i+j*ldr] = A[i+j*lda];
+            else
+                R[i+j*ldr] = 0.0f;
+        }
+    }
+}
+
 double read_timer( )
 {
     static bool initialized = false;
@@ -74,52 +86,83 @@ double read_timer( )
 
 int main() {
         /* Locals */
-        int m = M, n = N, lda = LDA, ldu = LDU, ldvt = LDVT, info, lwork;
+        int m = M, n = N, lda = LDA, ldu = LDU, ldvt = LDVT, info, info_QR, lwork;
+        int m_SVD=N;
+        int n_SVD=N;
+        int lda_SVD=n;
+        int ldu_SVD=n;
+        int ldvt_SVD=n;
         double wkopt;
         double* work;
         /* Local arrays */
-        double s[N], u[LDU*N], vt[LDVT*N];
+        /*double s[N], u[LDU*M], vt[LDVT*N];*/
+        double s[N], u[N*n], vt[N*N];
         double *a =(double *)malloc(LDA*N*sizeof(double));
+        double *R =(double *)malloc(N*N*sizeof(double));
+        double *tau =(double *)malloc(MIN(m,n)*sizeof(double));
+        fill(a, m*n);
         /*readMatrixFromFile(a, lda);*/
-        fill(a,m*n);
         /* Executable statements */
         printf( " DGESVD Example Program Results\n" );
         /* Query and allocate the optimal workspace */
+        /* QR */
+        int lwork_QR=-1;
+        double iwork_QR;
+        dgeqrf_(&m, &n, a, &lda, tau, &iwork_QR, &lwork_QR, &info_QR);
+        lwork_QR = (int)iwork_QR;
+        double* work_QR = new double[lwork_QR];
+
+        /* SVD*/
         lwork = -1;
-        dgesvd( "All", "All", &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, &wkopt, &lwork,
+        dgesvd( "All", "All", &m_SVD, &n_SVD, R, &lda_SVD, s, u, &ldu_SVD, vt, &ldvt_SVD, &wkopt, &lwork,
          &info );
         lwork = (int)wkopt;
         work = (double*)malloc( lwork*sizeof(double) );
 
         /*  measure time */
-        double Mflop_s, seconds;
+        double Mflop_s, seconds_QR, seconds_SVD;
         int n_iterations;
-        seconds = read_timer( );
-        for( n_iterations = 1; n_iterations<10 ; n_iterations ++ ) 
-        {
-            /* Compute SVD */
-            dgesvd( "All", "All", &m, &n, a, &lda, s, u, &ldu, vt, &ldvt, work, &lwork,
+        /*seconds = read_timer( ); */
+        /* computer QR first */
+            seconds_QR = read_timer( );
+            dgeqrf_(&m, &n, a, &lda, tau, work_QR, &lwork_QR, &info_QR);
+            seconds_QR = read_timer( ) - seconds_QR;
+            
+        computeRfromA(a,R, m, n);
+        for( n_iterations = 1; n_iterations<100 ; n_iterations ++ ) 
+        {   
+            
+            
+            seconds_SVD = read_timer( );
+            dgesvd( "All", "All", &m_SVD, &n_SVD, R, &lda_SVD, s, u, &ldu_SVD, vt, &ldvt_SVD, work, &lwork,
              &info );
+            seconds_SVD = read_timer( ) - seconds_SVD;
+            
+           
 
         }
-        seconds = read_timer( ) - seconds;
+        /*seconds = read_timer( ) - seconds;*/
         /*  compute Mflop/s rate */
-        Mflop_s = 4e-6 * n_iterations * m * m * n / seconds;
-        printf ("Mflop/s: %g\n", Mflop_s);
-        printf("time for SVD: %lf",seconds);
+        /*Mflop_s = 4e-6 * n_iterations * m * m * n / seconds;
+        printf ("Mflop/s: %g\n", Mflop_s);*/
+        
 
         /* Check for convergence */
         if( info > 0 ) {
                 printf( "The algorithm computing SVD failed to converge.\n" );
                 exit( 1 );
         }
+
         /* Print singular values */
+        /*
         print_matrix( "Singular values", 1, n, s, 1 );
-        /* Print left singular vectors */
         print_matrix( "Left singular vectors (stored columnwise)", m, n, u, ldu );
-        /* Print right singular vectors */
         print_matrix( "Right singular vectors (stored rowwise)", n, n, vt, ldvt );
-        printf("time take is %lf\n",seconds);
+        */
+        /*printf("total time taken is %lf\n",seconds);*/
+        /*printf("QR: %lf\n", seconds_QR);*/
+        printf("SVD: %lf\n", seconds_SVD);
+
         /* Free workspace */
         free( (void*)work );
         exit( 0 );
